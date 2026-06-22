@@ -6,6 +6,26 @@ It's simple, fast, lightweight and super easy to install.
 
 Official website: <https://miniflux.app>
 
+Fork features
+-------------
+
+This fork adds AI-powered entry labeling on top of upstream Miniflux.
+
+### Categories (`internal/ai/categories.json`)
+
+Every feed entry is labeled at ingest time by an LLM (configurable in `internal/ai/ai.go`).
+Labels are defined in `internal/ai/categories.json` — a JSON array of `{"name", "description"}` objects.
+Edit that file to add, remove, or redefine categories; the prompt, filter bar, and validation all derive from it automatically.
+
+Categories are displayed as chips on each entry in the unread list.
+The unread page has a filter bar: selecting multiple categories filters to entries that have **all** of them (AND logic).
+
+### Other additions
+
+- **Re-label button** (`↺`) on each entry to re-run AI labeling for a single item.
+- **Labeling progress banner** (SSE-based) shows live progress during bulk feed refreshes.
+- **Labeling failures page** (`/entries/labeling-failed`) lists entries that failed AI labeling, with a bulk retry button.
+
 Features
 --------
 

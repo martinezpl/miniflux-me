@@ -5,3 +5,6 @@
 *.deb
 *.rpm
 miniflux-*
+
+# Voice agent config (holds API key)
+voice_agent.json

@@ -156,6 +156,22 @@ func (e *EntryQueryBuilder) WithStatuses(statuses ...string) *EntryQueryBuilder 
 	return e
 }
 
+// WithAICategories filters entries that have ALL of the given AI categories (AND logic).
+func (e *EntryQueryBuilder) WithAICategories(categories ...string) *EntryQueryBuilder {
+	if len(categories) > 0 {
+		e.conditions = append(e.conditions, fmt.Sprintf("e.ai_categories @> $%d", len(e.args)+1))
+		e.args = append(e.args, pq.Array(categories))
+	}
+	return e
+}
+
+
+// WithAILabelFailed filters entries where AI labeling failed.
+func (e *EntryQueryBuilder) WithAILabelFailed() *EntryQueryBuilder {
+	e.conditions = append(e.conditions, "e.ai_label_failed = true")
+	return e
+}
+
 // WithTags filter by a list of entry tags.
 func (e *EntryQueryBuilder) WithTags(tags ...string) *EntryQueryBuilder {
 	if len(tags) > 0 {
@@ -308,6 +324,8 @@ func (e *EntryQueryBuilder) fetchEntries(withCount bool) (model.Entries, int, er
 			e.created_at,
 			e.changed_at,
 			e.tags,
+			e.ai_categories,
+			e.ai_label_failed,
 			f.title as feed_title,
 			f.feed_url,
 			f.site_url,
@@ -378,6 +396,8 @@ func (e *EntryQueryBuilder) fetchEntries(withCount bool) (model.Entries, int, er
 			&entry.CreatedAt,
 			&entry.ChangedAt,
 			pq.Array(&entry.Tags),
+			pq.Array(&entry.AICategories),
+			&entry.AILabelFailed,
 			&entry.Feed.Title,
 			&entry.Feed.FeedURL,
 			&entry.Feed.SiteURL,

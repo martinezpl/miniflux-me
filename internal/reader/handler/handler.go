@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"time"
 
+	"miniflux.app/v2/internal/ai"
 	"miniflux.app/v2/internal/config"
 	"miniflux.app/v2/internal/integration"
 	"miniflux.app/v2/internal/locale"
@@ -26,6 +27,30 @@ var (
 	ErrFeedNotFound     = errors.New("fetcher: feed not found")
 	ErrDuplicatedFeed   = errors.New("fetcher: duplicated feed")
 )
+
+func entriesWithID(entries model.Entries) model.Entries {
+	result := make(model.Entries, 0, len(entries))
+	for _, e := range entries {
+		if e.ID > 0 {
+			result = append(result, e)
+		}
+	}
+	return result
+}
+
+func labelNewEntries(store *storage.Storage, userID int64, entries model.Entries) {
+	ai.RegisterWork(userID, len(entries))
+	for _, entry := range entries {
+		cats, err := ai.LabelEntry(entry)
+		if err != nil {
+			slog.Warn("AI labeling failed", slog.Int64("entry_id", entry.ID), slog.Any("error", err))
+			store.UpdateEntryAILabels(entry.ID, []string{}, true)
+		} else {
+			store.UpdateEntryAILabels(entry.ID, cats, false)
+		}
+		ai.MarkLabeled(userID)
+	}
+}
 
 func getTranslatedLocalizedError(store *storage.Storage, userID int64, originalFeed *model.Feed, localizedError *locale.LocalizedErrorWrapper) *locale.LocalizedErrorWrapper {
 	user, storeErr := store.UserByID(userID)
@@ -94,6 +119,10 @@ func CreateFeedFromSubscriptionDiscovery(store *storage.Storage, userID int64, f
 		slog.Int64("feed_id", subscription.ID),
 		slog.String("feed_url", subscription.FeedURL),
 	)
+
+	if newEntries := entriesWithID(subscription.Entries); len(newEntries) > 0 {
+		go labelNewEntries(store, userID, newEntries)
+	}
 
 	icon.NewIconChecker(store, subscription).UpdateOrCreateFeedIcon()
 
@@ -185,6 +214,10 @@ func CreateFeed(store *storage.Storage, userID int64, feedCreationRequest *model
 		slog.Int64("feed_id", subscription.ID),
 		slog.String("feed_url", subscription.FeedURL),
 	)
+
+	if newEntries := entriesWithID(subscription.Entries); len(newEntries) > 0 {
+		go labelNewEntries(store, userID, newEntries)
+	}
 
 	icon.NewIconChecker(store, subscription).UpdateOrCreateFeedIcon()
 
@@ -325,6 +358,10 @@ func RefreshFeed(store *storage.Storage, userID, feedID int64, forceRefresh bool
 		if storeErr != nil {
 			localizedError := locale.NewLocalizedErrorWrapper(storeErr, "error.database_error", storeErr)
 			return getTranslatedLocalizedError(store, userID, originalFeed, localizedError)
+		}
+
+		if len(newEntries) > 0 {
+			go labelNewEntries(store, userID, newEntries)
 		}
 
 		userIntegrations, intErr := store.Integration(userID)

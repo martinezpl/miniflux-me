@@ -696,3 +696,36 @@ func truncateStringForTSVectorField(s string, maxSize int) string {
 	// Fallback: return empty string if we can't find a valid UTF-8 boundary
 	return ""
 }
+
+// UpdateEntryAILabels sets the AI categories and failure state for an entry.
+func (s *Storage) UpdateEntryAILabels(entryID int64, categories []string, failed bool) error {
+	_, err := s.db.Exec(
+		`UPDATE entries SET ai_categories=$1, ai_label_failed=$2 WHERE id=$3`,
+		pq.Array(categories), failed, entryID,
+	)
+	return err
+}
+
+// GetAICategoryCounts returns unread entry counts per AI category for a user.
+func (s *Storage) GetAICategoryCounts(userID int64) (map[string]int, error) {
+	rows, err := s.db.Query(`
+		SELECT unnest(ai_categories) AS cat, COUNT(*) AS cnt
+		FROM entries
+		WHERE user_id=$1 AND status='unread' AND ai_label_failed=false AND array_length(ai_categories,1) > 0
+		GROUP BY cat
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := make(map[string]int)
+	for rows.Next() {
+		var cat string
+		var cnt int
+		if err := rows.Scan(&cat, &cnt); err != nil {
+			return nil, err
+		}
+		result[cat] = cnt
+	}
+	return result, nil
+}

@@ -1545,4 +1545,25 @@ var migrations = [...]func(tx *sql.Tx) error{
 		`)
 		return err
 	},
+	func(tx *sql.Tx) (err error) {
+		_, err = tx.Exec(`
+			ALTER TABLE entries ADD COLUMN ai_categories text[] NOT NULL DEFAULT '{}';
+			ALTER TABLE entries ADD COLUMN ai_label_failed boolean NOT NULL DEFAULT false;
+		`)
+		return err
+	},
+	func(tx *sql.Tx) (err error) {
+		_, err = tx.Exec(`
+			ALTER TABLE entries ADD COLUMN ai_political_bias integer;
+			ALTER TABLE entries ADD COLUMN ai_sentiment integer;
+		`)
+		return err
+	},
+	func(tx *sql.Tx) (err error) {
+		_, err = tx.Exec(`
+			ALTER TABLE entries DROP COLUMN IF EXISTS ai_political_bias;
+			ALTER TABLE entries DROP COLUMN IF EXISTS ai_sentiment;
+		`)
+		return err
+	},
 }

@@ -38,6 +38,23 @@
 {{ end }}
 
 {{ define "content"}}
+
+<form id="ai-filters-form" method="get" action="{{ routePath "/unread" }}">
+
+{{ if .aiCategoryFilters }}
+<div class="ai-filter-bar">
+    {{ range .aiCategoryFilters }}
+    <label class="ai-filter-chip{{ if .Active }} active{{ end }}">
+        <input type="checkbox" name="categories" value="{{ .Name }}"{{ if .Active }} checked{{ end }}>
+        {{ .Name }}&nbsp;<span>({{ .Count }})</span>
+    </label>
+    {{ end }}
+</div>
+{{ end }}
+
+
+</form>
+
 {{ if not .entries }}
     <p role="alert" class="alert">{{ t "alert.no_unread_entry" }}</p>
 {{ else }}
@@ -68,6 +85,13 @@
                 </span>
             </header>
             {{ template "item_meta" dict "user" $.user "entry" . "hasSaveEntry" $.hasSaveEntry -}}
+            <div class="ai-entry-labels">
+                {{ range .AICategories }}<span class="ai-entry-label">{{ . }}</span>{{ end }}
+                <form method="post" action="{{ routePath "/entry/relabel/%d" .ID }}" style="display:inline">
+                    <input type="hidden" name="csrf" value="{{ $.csrf }}">
+                    <button type="submit" class="ai-entry-label ai-relabel-btn">↺</button>
+                </form>
+            </div>
         </article>
         {{ end }}
     </div>

@@ -45,6 +45,12 @@ func Serve(store *storage.Storage, pool *worker.Pool) http.Handler {
 	mux.HandleFunc("GET /unread", handler.showUnreadPage)
 	mux.HandleFunc("GET /unread/entry/{entryID}", handler.showUnreadEntryPage)
 
+	// AI labeling.
+	mux.HandleFunc("GET /labeling-progress/stream", handler.labelingProgressSSE)
+	mux.HandleFunc("GET /entries/labeling-failed", handler.showAILabelFailedPage)
+	mux.HandleFunc("POST /entries/labeling-failed/retry", handler.retryAILabelFailed)
+	mux.HandleFunc("POST /entry/relabel/{entryID}", handler.relabelEntry)
+
 	// History pages.
 	mux.HandleFunc("GET /history", handler.showHistoryPage)
 	mux.HandleFunc("GET /history/entry/{entryID}", handler.showReadEntryPage)
@@ -104,6 +110,7 @@ func Serve(store *storage.Storage, pool *worker.Pool) http.Handler {
 	mux.HandleFunc("POST /entry/enclosure/{enclosureID}/save-progression", handler.saveEnclosureProgression)
 	mux.HandleFunc("POST /entry/download/{entryID}", handler.fetchContent)
 	mux.HandleFunc("POST /entry/star/{entryID}", handler.toggleStarred)
+	mux.HandleFunc("POST /entry/chat/{entryID}", handler.articleChat)
 
 	// Media proxy.
 	mux.HandleFunc("GET /proxy/{encodedDigest}/{encodedURL}", handler.mediaProxy)

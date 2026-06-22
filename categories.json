@@ -1,0 +1,40 @@
+[
+  { "name": "sport", "description": "sports news" },
+  {
+    "name": "imba",
+    "description": "ONLY for major escalations or truly historic events (wars starting, leaders assassinated, market crashes, natural disasters killing thousands) — use sparingly"
+  },
+  {
+    "name": "wojna",
+    "description": "war related events"
+  },
+  {
+    "name": "geopolityka",
+    "description": "international relations, diplomacy, foreign policy, conflicts, global political developments that are not imba-level"
+  },
+  { "name": "polska", "description": "news about Poland" },
+  { "name": "hiszpania", "description": "news about Spain" },
+  { "name": "smieszne", "description": "humorous articles" },
+  {
+    "name": "opracowania",
+    "description": "articles that read like a book, investigative journalism"
+  },
+  {
+    "name": "wypadki",
+    "description": "crime, accidents"
+  },
+  { "name": "sadzonka", "description": "personal opinion pieces" },
+  { "name": "archeologia", "description": "archeology findings" },
+  {
+    "name": "sprawa dla spekulanta",
+    "description": "event likely to affect financial markets"
+  },
+  {
+    "name": "imigracja",
+    "description": "news about immigration"
+  },
+  {
+    "name": "technologia",
+    "description": "news about technology"
+  }
+]

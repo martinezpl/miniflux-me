@@ -37,6 +37,17 @@
         <script type="module" nonce="{{ $cspNonce }}">{{ .user.CustomJS | safeJS }}</script>
         {{ end -}}
     {{ end -}}
+    <style nonce="{{ $cspNonce }}">
+        #labeling-banner{background:#f0f4ff;border-bottom:1px solid #c0c8e8;padding:6px 16px;font-size:.875rem;color:#334;}
+        .ai-filter-bar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 0 8px;margin-bottom:4px;}
+        .ai-filter-chip{display:inline-block;padding:4px 10px;border:1px solid #bbb;font-size:.8rem;white-space:nowrap;color:#444;background:#fff;cursor:pointer;user-select:none;}
+        .ai-filter-chip input{display:none;}
+        .ai-filter-chip.active{background:#222;color:#fff;border-color:#222;}
+        .ai-filter-chip span{opacity:.65;}
+.ai-entry-labels{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;align-items:center;}
+        .ai-entry-label{padding:2px 8px;border:1px solid #d0d0d0;font-size:.72rem;color:#555;background:#fafafa;}
+.ai-relabel-btn{cursor:pointer;background:#fff0e0;border-color:#e0c090;}
+    </style>
 </head>
 <body
     data-service-worker-url="{{ routePath "/js/%s/%s.js" .sw_js_checksum "service-worker" }}"
@@ -102,6 +113,9 @@
                 <li {{ if eq .menu "search" }}class="active"{{ end }} title="{{ t "tooltip.keyboard_shortcuts" "/" }}">
                     <a href="{{ routePath "/search" }}" data-page="search">{{ icon "search" }}{{ t "menu.search" }}</a>
                 </li>
+                <li {{ if eq .menu "ai-label-failed" }}class="active"{{ end }}>
+                    <a href="{{ routePath "/entries/labeling-failed" }}">Labels{{ if gt .countAILabelFailed 0 }} ⚠{{ .countAILabelFailed }}{{ end }}</a>
+                </li>
                 <li {{ if eq .menu "settings" }}class="active"{{ end }} title="{{ t "tooltip.keyboard_shortcuts" "g s" }}">
                     <a href="{{ routePath "/settings" }}" data-page="settings">{{ icon "settings" }}{{ t "menu.settings" }}</a>
                 </li>
@@ -123,6 +137,35 @@
     {{ if .flashErrorMessage }}
         <div role="alert" class="flash-error-message alert alert-error">{{ .flashErrorMessage }}</div>
     {{ end }}
+    <div id="labeling-banner" hidden>
+        ⚙ Labeling entries: <span id="labeling-progress-text">…</span>
+    </div>
+    <script nonce="{{ $cspNonce }}">
+    document.addEventListener('DOMContentLoaded', function(){
+        // Labeling progress banner
+        var banner = document.getElementById('labeling-banner');
+        var text = document.getElementById('labeling-progress-text');
+        if(banner){
+            var es = new EventSource('{{ routePath "/labeling-progress/stream" }}');
+            es.onmessage = function(e){
+                var d = JSON.parse(e.data);
+                if(d.total > 0 && d.labeled < d.total){
+                    text.textContent = d.labeled + ' / ' + d.total;
+                    banner.hidden = false;
+                } else {
+                    banner.hidden = true;
+                }
+            };
+        }
+
+        // Category filter: submit form on checkbox change
+        var form = document.getElementById('ai-filters-form');
+        if(!form) return;
+        form.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+            cb.addEventListener('change', function(){ form.submit(); });
+        });
+    });
+    </script>
 
     {{template "page_header" .}}
 

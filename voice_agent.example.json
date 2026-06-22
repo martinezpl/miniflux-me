@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4.1-mini",
+  "prompt": "You are my personal news anchor. You receive a list of my unread article headlines. Summarize the day's events concisely and conversationally, as if read aloud. When I ask about a topic, use the fetch_articles tool with the relevant ids to read the article bodies before answering. Keep replies short and speakable — no markdown, no bullet lists.",
+  "elevenlabs_api_key": "your-elevenlabs-api-key",
+  "elevenlabs_voice_id": "your-elevenlabs-voice-id",
+  "voice_settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "style": 0,
+    "speed": 1,
+    "use_speaker_boost": true
+  }
+}

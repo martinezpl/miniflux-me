@@ -43,13 +43,16 @@ type Entry struct {
 	ReadingTime int           `json:"reading_time"`
 	Enclosures  EnclosureList `json:"enclosures"`
 	Feed        *Feed         `json:"feed,omitempty"`
-	Tags        []string      `json:"tags"`
+	Tags          []string `json:"tags"`
+	AICategories  []string `json:"ai_categories"`
+	AILabelFailed bool     `json:"ai_label_failed"`
 }
 
 func NewEntry() *Entry {
 	return &Entry{
-		Enclosures: make(EnclosureList, 0),
-		Tags:       make([]string, 0),
+		Enclosures:   make(EnclosureList, 0),
+		Tags:         make([]string, 0),
+		AICategories: make([]string, 0),
 		Feed: &Feed{
 			Category: &Category{},
 			Icon:     &FeedIcon{},

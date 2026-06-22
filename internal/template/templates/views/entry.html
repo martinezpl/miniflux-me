@@ -318,4 +318,23 @@
     {{ template "entry_pagination" . }}
 </div>
 {{ end }}
+
+{{ if .user }}
+<div id="article-chat" data-chat-url="{{ routePath "/entry/chat/%d" .entry.ID }}">
+    <button type="button" id="article-chat-toggle" class="article-chat-toggle" aria-label="Ask about this article" aria-expanded="false" title="Ask about this article">
+        <span class="article-chat-toggle-icon" aria-hidden="true">💬</span>
+    </button>
+    <div id="article-chat-panel" class="article-chat-panel" role="dialog" aria-label="Article assistant" hidden>
+        <div class="article-chat-header">
+            <span class="article-chat-title">Ask about this article</span>
+            <button type="button" id="article-chat-close" class="article-chat-close" aria-label="Close">&times;</button>
+        </div>
+        <div id="article-chat-log" class="article-chat-log" aria-live="polite"></div>
+        <form id="article-chat-form" class="article-chat-form">
+            <input type="text" id="article-chat-input" class="article-chat-input" autocomplete="off" spellcheck="false" placeholder="Ask a question…" aria-label="Your question">
+            <button type="submit" class="article-chat-send">Send</button>
+        </form>
+    </div>
+</div>
+{{ end }}
 {{ end }}

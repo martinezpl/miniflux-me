@@ -10,9 +10,10 @@ import (
 )
 
 type NavMetadata struct {
-	CountUnread     int
-	CountErrorFeeds int
-	HasSaveEntry    bool
+	CountUnread        int
+	CountErrorFeeds    int
+	HasSaveEntry       bool
+	CountAILabelFailed int
 }
 
 // GetNavMetadata returns the navigation metadata for the given user in a
@@ -63,23 +64,26 @@ func (s *Storage) GetNavMetadata(userID int64) (NavMetadata, error) {
 	`
 	if config.Opts.PollingParsingErrorLimit() == 0 {
 		// zero means unlimited amount of accepted errors
-		query += `(SELECT $2) AS count_error_feeds`
+		query += `(SELECT $2) AS count_error_feeds,`
 	} else {
 		query += `(SELECT count(*)
 			   FROM feeds
 			  WHERE user_id = $1
 			    AND parsing_error_count >= $2
-			) AS count_error_feeds
+			) AS count_error_feeds,
 			 `
 	}
 
-	var countUnread, countErrorFeeds int
+	query += `(SELECT count(*) FROM entries WHERE user_id=$1 AND ai_label_failed=true) AS count_ai_label_failed`
+
+	var countUnread, countErrorFeeds, countAILabelFailed int
 	var hasSaveEntry bool
 
 	err := s.db.QueryRow(query, userID, config.Opts.PollingParsingErrorLimit()).Scan(
 		&countUnread,
 		&hasSaveEntry,
 		&countErrorFeeds,
+		&countAILabelFailed,
 	)
 	if err != nil {
 		slog.Error("Unable to fetch navigation metadata",
@@ -90,8 +94,9 @@ func (s *Storage) GetNavMetadata(userID int64) (NavMetadata, error) {
 	}
 
 	return NavMetadata{
-		CountUnread:     countUnread,
-		CountErrorFeeds: countErrorFeeds,
-		HasSaveEntry:    hasSaveEntry,
+		CountUnread:        countUnread,
+		CountErrorFeeds:    countErrorFeeds,
+		HasSaveEntry:       hasSaveEntry,
+		CountAILabelFailed: countAILabelFailed,
 	}, nil
 }
